@@ -7,6 +7,28 @@ export interface CheckResultData {
   errorMessage: string | null;
 }
 
+const MAX_ERROR_BODY_LENGTH = 300;
+
+async function buildHttpErrorMessage(response: Response, expectedStatus: number) {
+  const parts = [`Expected ${expectedStatus}, got ${response.status}`];
+
+  if (response.statusText) {
+    parts.push(response.statusText);
+  }
+
+  try {
+    const bodyText = (await response.text()).trim();
+    if (bodyText) {
+      const compactBody = bodyText.replace(/\s+/g, " ").slice(0, MAX_ERROR_BODY_LENGTH);
+      parts.push(`Reason: ${compactBody}`);
+    }
+  } catch {
+    // Ignore response body read failures and keep the status-based message.
+  }
+
+  return parts.join(" - ");
+}
+
 export async function performCheck(monitor: Monitor): Promise<CheckResultData> {
   const startTime = Date.now();
 
@@ -39,7 +61,7 @@ export async function performCheck(monitor: Monitor): Promise<CheckResultData> {
       statusCode: response.status,
       responseTime,
       isUp,
-      errorMessage: isUp ? null : `Expected ${monitor.expectedStatus}, got ${response.status}`,
+      errorMessage: isUp ? null : await buildHttpErrorMessage(response, monitor.expectedStatus),
     };
   } catch (error) {
     const responseTime = Date.now() - startTime;

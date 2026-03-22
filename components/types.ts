@@ -21,4 +21,5 @@ export interface MonitorWithStatus {
   createdAt: string;
   lastCheck: CheckResult | null;
   uptimePercent: number | null;
+  channelIds: number[];
 }

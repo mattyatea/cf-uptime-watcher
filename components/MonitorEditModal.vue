@@ -7,19 +7,11 @@
       >
         X
       </button>
-      <h3 class="font-bold text-lg mb-6">Add Monitor</h3>
-
+      <h3 class="font-bold text-lg mb-4">Edit Monitor</h3>
       <form @submit.prevent="handleSubmit">
-        <!-- Name & URL -->
         <label class="floating-label mb-4">
           <span>Name</span>
-          <input
-            v-model="form.name"
-            type="text"
-            placeholder="My API"
-            class="input input-bordered w-full"
-            required
-          />
+          <input v-model="form.name" type="text" class="input input-bordered w-full" required />
         </label>
 
         <label class="floating-label mb-4">
@@ -27,13 +19,12 @@
           <input
             v-model="form.url"
             type="url"
-            placeholder="https://api.example.com/health"
             class="input input-bordered w-full"
+            placeholder="https://example.com"
             required
           />
         </label>
 
-        <!-- Method & Timeout -->
         <div class="grid grid-cols-2 gap-4 mb-4">
           <label class="floating-label">
             <span>Method</span>
@@ -50,14 +41,12 @@
               type="number"
               min="1"
               max="120"
-              placeholder="30"
               class="input input-bordered w-full"
               required
             />
           </label>
         </div>
 
-        <!-- Expected Status -->
         <label class="floating-label mb-4">
           <span>Expected Status</span>
           <input
@@ -65,12 +54,10 @@
             type="number"
             min="100"
             max="599"
-            placeholder="200"
             class="input input-bordered w-full"
           />
         </label>
 
-        <!-- POST body (conditional) -->
         <div v-if="form.method === 'POST'">
           <label class="floating-label mb-4">
             <span>Content-Type</span>
@@ -103,7 +90,6 @@
           </div>
         </div>
 
-        <!-- Headers (collapsible) -->
         <div class="collapse collapse-arrow bg-base-200 mb-4">
           <input type="checkbox" />
           <div class="collapse-title font-medium text-sm">Custom Headers</div>
@@ -117,15 +103,20 @@
           </div>
         </div>
 
-        <!-- Error -->
+        <div class="form-control mb-4">
+          <label class="label cursor-pointer">
+            <span class="label-text">Active</span>
+            <input v-model="form.active" type="checkbox" class="toggle toggle-success" />
+          </label>
+        </div>
+
         <div v-if="error" class="alert alert-error text-sm mb-4">{{ error }}</div>
 
-        <!-- Actions -->
         <div class="modal-action">
           <button type="button" class="btn btn-ghost" @click="$emit('close')">Cancel</button>
           <button type="submit" class="btn btn-primary" :disabled="loading">
             <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-            Create
+            Save
           </button>
         </div>
       </form>
@@ -137,11 +128,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { client } from "../server/client";
+import type { MonitorWithStatus } from "./types";
 
-defineProps<{ open: boolean }>();
-const emit = defineEmits<{ close: []; created: [] }>();
+const props = defineProps<{ open: boolean; monitor: MonitorWithStatus | null }>();
+const emit = defineEmits<{ close: []; updated: [] }>();
 
 const form = ref({
   name: "",
@@ -151,6 +143,7 @@ const form = ref({
   expectedStatus: 200,
   headers: "",
   body: "",
+  active: true,
 });
 
 const loading = ref(false);
@@ -215,13 +208,34 @@ function handleContentTypeChange(event: Event) {
   form.value.headers = stringifyHeaders(headers);
 }
 
+watch(
+  () => props.monitor,
+  (m) => {
+    if (m) {
+      form.value = {
+        name: m.name,
+        url: m.url,
+        method: m.method as "GET" | "POST",
+        timeout: m.timeout,
+        expectedStatus: m.expectedStatus,
+        headers: m.headers ?? "",
+        body: m.body ?? "",
+        active: m.active,
+      };
+    }
+  },
+  { immediate: true },
+);
+
 async function handleSubmit() {
+  if (!props.monitor) return;
   error.value = "";
   loading.value = true;
   try {
     parseHeaders(form.value.headers);
 
-    await client.monitor.create({
+    await client.monitor.update({
+      id: props.monitor.id,
       name: form.value.name,
       url: form.value.url,
       method: form.value.method,
@@ -229,20 +243,12 @@ async function handleSubmit() {
       expectedStatus: form.value.expectedStatus,
       headers: form.value.headers || null,
       body: form.value.method === "POST" ? form.value.body || null : null,
+      active: form.value.active,
     });
-    form.value = {
-      name: "",
-      url: "",
-      method: "GET",
-      timeout: 30,
-      expectedStatus: 200,
-      headers: "",
-      body: "",
-    };
-    emit("created");
+    emit("updated");
     emit("close");
   } catch (e) {
-    error.value = e instanceof Error ? e.message : "Failed to create monitor";
+    error.value = e instanceof Error ? e.message : "Failed to update";
   } finally {
     loading.value = false;
   }

@@ -11,8 +11,24 @@
         :is-admin="isAdmin"
         @check="checkNow"
         @delete="confirmDelete"
+        @edit="showEditModal = true"
       />
+
+      <MonitorChannelSelector
+        v-if="isAdmin"
+        :monitor-id="monitorId"
+        :channel-ids="monitor.channelIds"
+      />
+
       <CheckHistory :history="history" />
+
+      <MonitorEditModal
+        v-if="isAdmin"
+        :open="showEditModal"
+        :monitor="monitor"
+        @close="showEditModal = false"
+        @updated="loadMonitor"
+      />
     </template>
   </div>
 </template>
@@ -25,6 +41,8 @@ import { client } from "../../../server/client";
 import type { MonitorWithStatus, CheckResult } from "../../../components/types";
 import MonitorHeader from "../../../components/MonitorHeader.vue";
 import CheckHistory from "../../../components/CheckHistory.vue";
+import MonitorChannelSelector from "../../../components/MonitorChannelSelector.vue";
+import MonitorEditModal from "../../../components/MonitorEditModal.vue";
 
 const pageContext = usePageContext();
 const monitorId = Number(pageContext.routeParams!.id);
@@ -33,6 +51,7 @@ const monitor = ref<MonitorWithStatus | null>(null);
 const history = ref<CheckResult[]>([]);
 const checking = ref(false);
 const isAdmin = ref(false);
+const showEditModal = ref(false);
 
 async function loadMonitor() {
   const data = await client.monitor.get({ id: monitorId });

@@ -38,6 +38,7 @@
             <span v-if="checking" class="loading loading-spinner loading-xs"></span>
             Check Now
           </button>
+          <button class="btn btn-sm btn-outline" @click="$emit('edit')">Edit</button>
           <button class="btn btn-sm btn-outline btn-error" @click="$emit('delete')">Delete</button>
         </div>
       </div>
@@ -79,7 +80,7 @@ const props = defineProps<{
   checking: boolean;
   isAdmin: boolean;
 }>();
-defineEmits<{ check: []; delete: [] }>();
+defineEmits<{ check: []; delete: []; edit: [] }>();
 
 const uptimeColor = computed(() => {
   const p = props.monitor.uptimePercent;

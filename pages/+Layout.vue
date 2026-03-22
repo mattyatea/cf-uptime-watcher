@@ -7,6 +7,9 @@
         <a href="/" class="btn btn-ghost text-xl">CF Healthcheck</a>
       </div>
       <div class="flex-none flex gap-1">
+        <a href="/api/openapi" target="_blank" rel="noreferrer" class="btn btn-ghost btn-sm">
+          API Docs
+        </a>
         <template v-if="isLoggedIn">
           <button class="btn btn-ghost btn-sm" @click="logout">Logout</button>
         </template>

@@ -1,5 +1,6 @@
 import { implement } from "@orpc/server";
 import type { dbD1 } from "../database/drizzle/db";
+import * as mnQueries from "../database/drizzle/queries/monitor-notifications";
 import * as queries from "../database/drizzle/queries/monitors";
 import * as channelQueries from "../database/drizzle/queries/notification-channels";
 import { performCheck } from "./check";
@@ -20,6 +21,11 @@ function requireAuth(context: Context) {
   }
 }
 
+async function getMonitorWithChannelIds(db: ReturnType<typeof dbD1>, monitorId: number) {
+  const rows = await mnQueries.getChannelIdsForMonitor(db, monitorId);
+  return rows.map((r) => r.channelId);
+}
+
 // Public: read-only endpoints
 const listMonitors = os.monitor.list.handler(async ({ context }) => {
   const monitors = await queries.getAllMonitors(context.db);
@@ -30,7 +36,8 @@ const listMonitors = os.monitor.list.handler(async ({ context }) => {
       const upChecks = history.filter((c) => c.isUp).length;
       const uptimePercent =
         history.length > 0 ? Math.round((upChecks / history.length) * 10000) / 100 : null;
-      return { ...m, lastCheck, uptimePercent };
+      const channelIds = await getMonitorWithChannelIds(context.db, m.id);
+      return { ...m, lastCheck, uptimePercent, channelIds };
     }),
   );
   return results;
@@ -44,7 +51,8 @@ const getMonitor = os.monitor.get.handler(async ({ context, input }) => {
   const upChecks = history.filter((c) => c.isUp).length;
   const uptimePercent =
     history.length > 0 ? Math.round((upChecks / history.length) * 10000) / 100 : null;
-  return { ...monitor, lastCheck, uptimePercent };
+  const channelIds = await getMonitorWithChannelIds(context.db, monitor.id);
+  return { ...monitor, lastCheck, uptimePercent, channelIds };
 });
 
 const monitorHistory = os.monitor.history.handler(async ({ context, input }) => {
@@ -91,6 +99,12 @@ const checkNow = os.monitor.checkNow.handler(async ({ context, input }) => {
   });
   const latest = await queries.getLatestCheckResult(context.db, monitor.id);
   return latest!;
+});
+
+const setMonitorChannels = os.monitor.setChannels.handler(async ({ context, input }) => {
+  requireAuth(context);
+  await mnQueries.setChannelsForMonitor(context.db, input.id, input.channelIds);
+  return { status: "OK" as const };
 });
 
 // Notification channels (all protected)
@@ -168,6 +182,7 @@ export const router = os.router({
     delete: deleteMonitor,
     history: monitorHistory,
     checkNow: checkNow,
+    setChannels: setMonitorChannels,
   },
   notification: {
     list: listChannels,

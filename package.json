@@ -15,7 +15,9 @@
   "dependencies": {
     "@orpc/client": "^1.13.9",
     "@orpc/contract": "^1.13.9",
+    "@orpc/openapi": "^1.13.9",
     "@orpc/server": "^1.13.9",
+    "@orpc/zod": "^1.13.9",
     "@photonjs/cloudflare": "^0.1.13",
     "@photonjs/hono": "^0.1.12",
     "dotenv": "^17.3.1",
@@ -45,6 +47,11 @@
     "overrides": {
       "vite": "npm:@voidzero-dev/vite-plus-core@latest",
       "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
   }
 }

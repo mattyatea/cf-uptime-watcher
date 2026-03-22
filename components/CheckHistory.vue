@@ -38,8 +38,24 @@
               <td class="font-mono">
                 {{ check.responseTime !== null ? `${check.responseTime}ms` : "-" }}
               </td>
-              <td class="text-sm text-error max-w-xs truncate">
-                {{ check.errorMessage ?? "-" }}
+              <td class="max-w-md">
+                <div
+                  v-if="check.errorMessage"
+                  class="text-sm text-error whitespace-pre-wrap break-words"
+                  :class="isExpanded(check.id) ? '' : 'line-clamp-2'"
+                >
+                  {{ check.errorMessage }}
+                </div>
+                <span v-else class="text-sm text-base-content/60">-</span>
+                <button
+                  v-if="shouldShowToggle(check.errorMessage)"
+                  type="button"
+                  class="btn btn-outline btn-xs mt-2"
+                  @click="toggleExpanded(check.id)"
+                  :aria-expanded="isExpanded(check.id)"
+                >
+                  {{ isExpanded(check.id) ? "Hide full error" : "Show full error" }}
+                </button>
               </td>
               <td class="text-sm">{{ formatDate(check.checkedAt) }}</td>
             </tr>
@@ -54,12 +70,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { CheckResult } from "./types";
 
 const props = defineProps<{ history: CheckResult[] }>();
 
+const expandedIds = ref<number[]>([]);
 const barData = computed(() => [...props.history].reverse().slice(-90));
+const ERROR_TOGGLE_THRESHOLD = 120;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString();
@@ -70,5 +88,22 @@ function tooltip(check: CheckResult) {
   const status = check.isUp ? "Up" : "Down";
   const rt = check.responseTime ? ` (${check.responseTime}ms)` : "";
   return `${time} - ${status}${rt}`;
+}
+
+function isExpanded(id: number) {
+  return expandedIds.value.includes(id);
+}
+
+function toggleExpanded(id: number) {
+  if (isExpanded(id)) {
+    expandedIds.value = expandedIds.value.filter((expandedId) => expandedId !== id);
+    return;
+  }
+
+  expandedIds.value = [...expandedIds.value, id];
+}
+
+function shouldShowToggle(errorMessage: string | null) {
+  return Boolean(errorMessage && errorMessage.length > ERROR_TOGGLE_THRESHOLD);
 }
 </script>
