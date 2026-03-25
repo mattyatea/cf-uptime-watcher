@@ -1,6 +1,11 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-6">設定</h1>
+    <header class="settings-header mb-6">
+      <h1 class="text-2xl font-bold m-0">設定</h1>
+      <p class="text-sm text-base-content/50 mt-2 mb-0">
+        モニター、通知チャンネル、Webhook をまとめて管理します。
+      </p>
+    </header>
 
     <!-- Tabs -->
     <div class="settings-tabs mb-6">
@@ -480,6 +485,11 @@ onMounted(async () => {
 .settings-tabs {
   display: flex;
   gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settings-header {
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
