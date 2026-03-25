@@ -18,7 +18,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: "CF Healthcheck",
+      title: "Uptime Monitor",
       meta: [
         {
           name: "description",
