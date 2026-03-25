@@ -37,7 +37,8 @@ const listMonitors = os.monitor.list.handler(async ({ context }) => {
       const uptimePercent =
         history.length > 0 ? Math.round((upChecks / history.length) * 10000) / 100 : null;
       const channelIds = await getMonitorWithChannelIds(context.db, m.id);
-      return { ...m, lastCheck, uptimePercent, channelIds };
+      const recentChecks = [...history].reverse().slice(-90);
+      return { ...m, lastCheck, uptimePercent, channelIds, recentChecks };
     }),
   );
   return results;
@@ -105,6 +106,55 @@ const setMonitorChannels = os.monitor.setChannels.handler(async ({ context, inpu
   requireAuth(context);
   await mnQueries.setChannelsForMonitor(context.db, input.id, input.channelIds);
   return { status: "OK" as const };
+});
+
+const importMonitors = os.monitor.import.handler(async ({ context, input }) => {
+  requireAuth(context);
+
+  const existingMonitors = await queries.getAllMonitors(context.db);
+  const existingUrls = new Set(existingMonitors.map((m) => m.url));
+
+  const details: Array<{
+    name: string;
+    status: "imported" | "skipped" | "error";
+    message?: string;
+  }> = [];
+  let imported = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  for (const m of input.monitors) {
+    try {
+      if (input.skipDuplicates && existingUrls.has(m.url)) {
+        details.push({ name: m.name, status: "skipped", message: "URL already exists" });
+        skipped++;
+        continue;
+      }
+
+      await queries.insertMonitor(context.db, {
+        name: m.name,
+        url: m.url,
+        method: m.method,
+        headers: m.headers ?? null,
+        body: m.body ?? null,
+        timeout: m.timeout ?? 30,
+        expectedStatus: m.expectedStatus ?? 200,
+        active: true,
+      });
+      details.push({ name: m.name, status: "imported" });
+      imported++;
+      existingUrls.add(m.url);
+    } catch (e) {
+      details.push({
+        name: m.name,
+        status: "error",
+        message: e instanceof Error ? e.message : "Unknown error",
+      });
+      errors++;
+    }
+  }
+
+  return { imported, skipped, errors, details };
 });
 
 // Notification channels (all protected)
@@ -182,6 +232,7 @@ export const router = os.router({
     delete: deleteMonitor,
     history: monitorHistory,
     checkNow: checkNow,
+    import: importMonitors,
     setChannels: setMonitorChannels,
   },
   notification: {

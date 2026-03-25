@@ -1,0 +1,51 @@
+import { computed, toValue } from "vue";
+import type { MaybeRefOrGetter } from "vue";
+import type { CheckResult } from "../components/types";
+
+export function useMonitorStatus(
+  lastCheck: MaybeRefOrGetter<CheckResult | null>,
+  uptimePercent: MaybeRefOrGetter<number | null>,
+) {
+  const status = computed<"up" | "down" | "pending">(() => {
+    const check = toValue(lastCheck);
+    if (!check) return "pending";
+    return check.isUp ? "up" : "down";
+  });
+
+  const statusColor = computed(() => {
+    const map: Record<string, string> = {
+      up: "bg-success",
+      down: "bg-error",
+      pending: "bg-base-content/30",
+    };
+    return map[status.value];
+  });
+
+  const statusVariant = computed<"success" | "error" | "ghost">(() => {
+    const map: Record<string, "success" | "error" | "ghost"> = {
+      up: "success",
+      down: "error",
+      pending: "ghost",
+    };
+    return map[status.value] ?? "ghost";
+  });
+
+  const statusText = computed(() => {
+    const map: Record<string, string> = {
+      up: "稼働中",
+      down: "停止",
+      pending: "待機中",
+    };
+    return map[status.value];
+  });
+
+  const uptimeColorClass = computed(() => {
+    const p = toValue(uptimePercent);
+    if (p === null) return "";
+    if (p >= 99) return "text-success";
+    if (p >= 95) return "text-warning";
+    return "text-error";
+  });
+
+  return { statusColor, statusVariant, statusText, status, uptimeColorClass };
+}

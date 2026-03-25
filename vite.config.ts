@@ -1,6 +1,3 @@
-import vue from "@vitejs/plugin-vue";
-import tailwindcss from "@tailwindcss/vite";
-import vike from "vike/plugin";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
@@ -13,13 +10,6 @@ export default defineConfig({
     options: {
       typeAware: true,
       typeCheck: true,
-    },
-  },
-  plugins: [vike(), tailwindcss(), vue()],
-
-  build: {
-    rollupOptions: {
-      external: ["wrangler"],
     },
   },
 });

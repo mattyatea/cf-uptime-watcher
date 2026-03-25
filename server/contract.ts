@@ -28,6 +28,7 @@ const MonitorWithStatusSchema = MonitorSchema.extend({
   lastCheck: CheckResultSchema.nullable(),
   uptimePercent: z.number().nullable(),
   channelIds: z.array(z.number().int()),
+  recentChecks: z.array(CheckResultSchema).optional(),
 });
 
 const MonitorIdInputSchema = z.object({ id: z.coerce.number().int() });
@@ -162,6 +163,46 @@ export const contract = {
       )
       .input(MonitorIdInputSchema)
       .output(CheckResultSchema),
+    import: oc
+      .route(
+        withBearerAuth(
+          "Import monitors from JSON",
+          "Bulk-imports monitors from an array. Optionally skips entries whose URL already exists.",
+          "/monitors/import",
+          "POST",
+          ["Monitor"],
+        ),
+      )
+      .input(
+        z.object({
+          monitors: z.array(
+            z.object({
+              name: z.string().min(1).max(100),
+              url: z.string().url(),
+              method: z.enum(["GET", "POST"]),
+              headers: z.string().nullable().optional(),
+              body: z.string().nullable().optional(),
+              timeout: z.number().int().min(1).max(120).optional(),
+              expectedStatus: z.number().int().min(100).max(599).optional(),
+            }),
+          ),
+          skipDuplicates: z.boolean().optional(),
+        }),
+      )
+      .output(
+        z.object({
+          imported: z.number().int(),
+          skipped: z.number().int(),
+          errors: z.number().int(),
+          details: z.array(
+            z.object({
+              name: z.string(),
+              status: z.enum(["imported", "skipped", "error"]),
+              message: z.string().optional(),
+            }),
+          ),
+        }),
+      ),
     setChannels: oc
       .route(
         withBearerAuth(

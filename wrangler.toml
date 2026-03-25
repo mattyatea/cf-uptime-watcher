@@ -1,14 +1,21 @@
 name = "cf-healthcheck"
 compatibility_date = "2026-03-12"
-main = "virtual:photon:cloudflare:server-entry"
+main = ".output/server/index.mjs"
 preview_urls = false
 workers_dev = false
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+AUTH_PASSWORD = "changeme"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "cf-healthcheck-db"
+database_name = "healthcheck"
 database_id = "24ac7bee-1b66-438c-987b-68e1e84bfe19"
 migrations_dir = "database/migrations"
 
 [triggers]
 crons = ["*/5 * * * *"]
+
+[assets]
+directory = ".output/public"
