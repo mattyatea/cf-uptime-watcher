@@ -4,6 +4,7 @@ import { z } from "zod";
 const MonitorSchema = z.object({
   id: z.number().int(),
   name: z.string(),
+  displayName: z.string().nullable(), // 公開時に表示する名前
   url: z.string(),
   method: z.string(),
   headers: z.string().nullable(),
@@ -90,6 +91,7 @@ export const contract = {
       .input(
         z.object({
           name: z.string().min(1).max(100),
+          displayName: z.string().min(1).max(100).nullable().optional(), // 公開時に表示する名前
           url: z.string().url(),
           method: z.enum(["GET", "POST"]),
           headers: z.string().nullable().optional(),
@@ -113,6 +115,7 @@ export const contract = {
         z.object({
           id: z.coerce.number().int(),
           name: z.string().min(1).max(100).optional(),
+          displayName: z.string().min(1).max(100).nullable().optional(), // 公開時に表示する名前
           url: z.string().url().optional(),
           method: z.enum(["GET", "POST"]).optional(),
           headers: z.string().nullable().optional(),
@@ -232,13 +235,14 @@ export const contract = {
       .output(
         z.array(
           z.object({
-            id: z.number().int(),
-            type: z.string(),
-            name: z.string(),
-            webhookUrl: z.string(),
-            template: z.string().nullable(),
-            active: z.boolean(),
-            createdAt: z.string(),
+            name: z.string().min(1).max(100),
+            displayName: z.string().min(1).max(100).nullable().optional(), // 公開時に表示する名前
+            url: z.string().url(),
+            method: z.enum(["GET", "POST"]),
+            headers: z.string().nullable().optional(),
+            body: z.string().nullable().optional(),
+            timeout: z.number().int().min(1).max(120).optional(),
+            expectedStatus: z.number().int().min(100).max(599).optional(),
           }),
         ),
       ),

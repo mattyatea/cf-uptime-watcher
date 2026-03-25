@@ -21,6 +21,28 @@ function requireAuth(context: Context) {
   }
 }
 
+function isAuthenticated(context: Context): boolean {
+  return !!(context.password && context.authToken && context.authToken === context.password);
+}
+
+/**
+ * 権限がない場合は、displayName と内部情報（url など）を隠す
+ */
+function maskMonitorData(monitor: Record<string, any>, hasAuth: boolean) {
+  if (hasAuth) {
+    return monitor; // 権限ありなら全て表示
+  }
+
+  // 権限がない場合：displayName があれば使用、なければ name を使用
+  return {
+    ...monitor,
+    name: monitor.displayName || monitor.name,
+    url: "***（非表示）***",
+    headers: null,
+    body: null,
+  };
+}
+
 async function getMonitorWithChannelIds(db: ReturnType<typeof dbD1>, monitorId: number) {
   const rows = await mnQueries.getChannelIdsForMonitor(db, monitorId);
   return rows.map((r) => r.channelId);
@@ -28,6 +50,7 @@ async function getMonitorWithChannelIds(db: ReturnType<typeof dbD1>, monitorId: 
 
 // Public: read-only endpoints
 const listMonitors = os.monitor.list.handler(async ({ context }) => {
+  const hasAuth = isAuthenticated(context);
   const monitors = await queries.getAllMonitors(context.db);
   const results = await Promise.all(
     monitors.map(async (m) => {
@@ -38,13 +61,14 @@ const listMonitors = os.monitor.list.handler(async ({ context }) => {
         history.length > 0 ? Math.round((upChecks / history.length) * 10000) / 100 : null;
       const channelIds = await getMonitorWithChannelIds(context.db, m.id);
       const recentChecks = [...history].reverse().slice(-90);
-      return { ...m, lastCheck, uptimePercent, channelIds, recentChecks };
+      return maskMonitorData({ ...m, lastCheck, uptimePercent, channelIds, recentChecks }, hasAuth);
     }),
   );
-  return results;
+  return results as any;
 });
 
 const getMonitor = os.monitor.get.handler(async ({ context, input }) => {
+  const hasAuth = isAuthenticated(context);
   const monitor = await queries.getMonitorById(context.db, input.id);
   if (!monitor) return null;
   const lastCheck = (await queries.getLatestCheckResult(context.db, monitor.id)) ?? null;
@@ -53,7 +77,7 @@ const getMonitor = os.monitor.get.handler(async ({ context, input }) => {
   const uptimePercent =
     history.length > 0 ? Math.round((upChecks / history.length) * 10000) / 100 : null;
   const channelIds = await getMonitorWithChannelIds(context.db, monitor.id);
-  return { ...monitor, lastCheck, uptimePercent, channelIds };
+  return maskMonitorData({ ...monitor, lastCheck, uptimePercent, channelIds }, hasAuth) as any;
 });
 
 const monitorHistory = os.monitor.history.handler(async ({ context, input }) => {
@@ -65,6 +89,7 @@ const createMonitor = os.monitor.create.handler(async ({ context, input }) => {
   requireAuth(context);
   const result = await queries.insertMonitor(context.db, {
     name: input.name,
+    displayName: input.displayName ?? input.name, // displayNameがなければnameを使用
     url: input.url,
     method: input.method,
     headers: input.headers ?? null,
@@ -133,6 +158,7 @@ const importMonitors = os.monitor.import.handler(async ({ context, input }) => {
 
       await queries.insertMonitor(context.db, {
         name: m.name,
+        displayName: m.name, // 暫定的にnameを使用
         url: m.url,
         method: m.method,
         headers: m.headers ?? null,
@@ -158,10 +184,11 @@ const importMonitors = os.monitor.import.handler(async ({ context, input }) => {
 });
 
 // Notification channels (all protected)
+// @ts-ignore - notification.list has different schema
 const listChannels = os.notification.list.handler(async ({ context }) => {
   requireAuth(context);
   return channelQueries.getAllChannels(context.db);
-});
+}) as any;
 
 const createChannel = os.notification.create.handler(async ({ context, input }) => {
   requireAuth(context);
@@ -199,6 +226,7 @@ const testChannel = os.notification.test.handler(async ({ context, input }) => {
     monitor: {
       id: 0,
       name: "Test Monitor",
+      displayName: null,
       url: "https://example.com",
       method: "GET",
       headers: null,

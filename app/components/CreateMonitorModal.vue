@@ -3,7 +3,15 @@
     <form @submit.prevent="handleSubmit">
       <!-- Name & URL -->
       <div class="mb-4">
-        <AppInput v-model="form.name" label="名前" placeholder="My API" required />
+        <AppInput v-model="form.name" label="名前（内部用）" placeholder="My API" required />
+      </div>
+
+      <div class="mb-4">
+        <AppInput
+          v-model="form.displayName"
+          label="表示名（権限がない時に見える名前）"
+          placeholder="My Service Monitor"
+        />
       </div>
 
       <div class="mb-4">
@@ -98,6 +106,7 @@ const emit = defineEmits<{ close: []; created: [] }>();
 
 const form = ref({
   name: "",
+  displayName: "",
   url: "",
   method: "GET",
   timeout: "30",
@@ -138,6 +147,7 @@ async function handleSubmit() {
 
     await client.monitor.create({
       name: form.value.name,
+      displayName: form.value.displayName || null,
       url: form.value.url,
       method: form.value.method as "GET" | "POST",
       timeout: Number(form.value.timeout),
@@ -147,6 +157,7 @@ async function handleSubmit() {
     });
     form.value = {
       name: "",
+      displayName: "",
       url: "",
       method: "GET",
       timeout: "30",
@@ -157,7 +168,7 @@ async function handleSubmit() {
     emit("created");
     emit("close");
   } catch (e) {
-    error.value = e instanceof Error ? e.message : "モニターの作成に失敗しました";
+    error.value = e instanceof Error ? e.message : "作成に失敗しました";
   } finally {
     loading.value = false;
   }

@@ -3,6 +3,7 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 export const monitorTable = sqliteTable("monitors", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
+  displayName: text("display_name"), // 公開時に表示する名前
   url: text("url").notNull(),
   method: text("method").notNull().default("GET"),
   headers: text("headers"), // JSON string
