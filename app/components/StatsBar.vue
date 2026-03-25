@@ -11,7 +11,7 @@
 const props = defineProps<{ total: number; up: number; down: number }>();
 
 const bannerClass = computed(() => {
-  if (props.total === 0) return "banner-neutral";
+  if (props.total === 0) return "banner-neutral bg-base-200 text-base-content/50";
   if (props.down === 0) return "banner-operational";
   if (props.down === props.total) return "banner-major";
   return "banner-partial";
@@ -51,59 +51,32 @@ const message = computed(() => {
 }
 
 .banner-operational {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: var(--status-up-bg);
+  color: var(--status-up-fg);
 }
 
 .banner-operational .status-icon {
-  background-color: #10b981;
+  background-color: var(--status-up);
   color: white;
 }
 
 .banner-partial {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--status-warn-bg);
+  color: var(--status-warn-fg);
 }
 
 .banner-partial .status-icon {
-  background-color: #f59e0b;
+  background-color: var(--status-warn);
   color: white;
 }
 
 .banner-major {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: var(--status-down-bg);
+  color: var(--status-down-fg);
 }
 
 .banner-major .status-icon {
-  background-color: #ef4444;
+  background-color: var(--status-down);
   color: white;
-}
-
-.banner-neutral {
-  background-color: oklch(var(--b2, 0.93 0 0));
-  color: oklch(var(--bc, 0.2 0 0) / 0.5);
-}
-
-.banner-neutral .status-icon {
-  background-color: oklch(var(--bc, 0.2 0 0) / 0.3);
-  color: white;
-}
-
-@media (prefers-color-scheme: dark) {
-  .banner-operational {
-    background-color: #064e3b;
-    color: #a7f3d0;
-  }
-
-  .banner-partial {
-    background-color: #78350f;
-    color: #fde68a;
-  }
-
-  .banner-major {
-    background-color: #7f1d1d;
-    color: #fecaca;
-  }
 }
 </style>

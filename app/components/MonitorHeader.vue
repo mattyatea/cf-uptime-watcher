@@ -1,5 +1,5 @@
 <template>
-  <div class="monitor-header-card mb-6">
+  <div class="monitor-header-card bg-base-100 mb-6">
     <div class="flex items-start justify-between flex-wrap gap-4">
       <div>
         <div class="flex items-center gap-3 mb-2">
@@ -16,32 +16,33 @@
         <AppButton variant="outline" size="sm" :loading="checking" @click="$emit('check')">
           今すぐチェック
         </AppButton>
+        <AppButton variant="outline" size="sm" @click="$emit('duplicate')">複製</AppButton>
         <AppButton variant="outline" size="sm" @click="$emit('edit')">編集</AppButton>
         <AppButton variant="danger" size="sm" @click="$emit('delete')">削除</AppButton>
       </div>
     </div>
 
     <div class="stats-grid mt-5">
-      <div class="stat-item">
-        <div class="stat-label">稼働率</div>
+      <div class="stat-item bg-base-200/50">
+        <div class="stat-label text-base-content/50">稼働率</div>
         <div class="stat-value" :class="uptimeColorClass">
           {{ monitor.uptimePercent !== null ? `${monitor.uptimePercent}%` : "-" }}
         </div>
       </div>
-      <div class="stat-item">
-        <div class="stat-label">応答時間</div>
+      <div class="stat-item bg-base-200/50">
+        <div class="stat-label text-base-content/50">応答時間</div>
         <div class="stat-value">
           {{
             monitor.lastCheck?.responseTime != null ? `${monitor.lastCheck.responseTime}ms` : "-"
           }}
         </div>
       </div>
-      <div class="stat-item">
-        <div class="stat-label">タイムアウト</div>
+      <div class="stat-item bg-base-200/50">
+        <div class="stat-label text-base-content/50">タイムアウト</div>
         <div class="stat-value">{{ monitor.timeout }}s</div>
       </div>
-      <div class="stat-item">
-        <div class="stat-label">期待ステータス</div>
+      <div class="stat-item bg-base-200/50">
+        <div class="stat-label text-base-content/50">期待ステータス</div>
         <div class="stat-value">{{ monitor.expectedStatus }}</div>
       </div>
     </div>
@@ -56,7 +57,7 @@ const props = defineProps<{
   checking: boolean;
   isAdmin: boolean;
 }>();
-defineEmits<{ check: []; delete: []; edit: [] }>();
+defineEmits<{ check: []; delete: []; edit: []; duplicate: [] }>();
 
 const { status, uptimeColorClass, statusText } = useMonitorStatus(
   () => props.monitor.lastCheck,
@@ -84,8 +85,7 @@ const statusLabelClass = computed(() => {
 
 <style scoped>
 .monitor-header-card {
-  background: oklch(var(--b1, 1 0 0));
-  border: 1px solid oklch(var(--bc, 0.2 0 0) / 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
   padding: 1.25rem;
 }
@@ -98,14 +98,15 @@ const statusLabelClass = computed(() => {
 }
 
 .dot-up {
-  background-color: #10b981;
+  background-color: var(--status-up);
 }
 .dot-down {
-  background-color: #ef4444;
+  background-color: var(--status-down);
   animation: pulse-slow 2s ease-in-out infinite;
 }
 .dot-pending {
-  background-color: oklch(var(--bc, 0.2 0 0) / 0.3);
+  background-color: var(--color-base-content, gray);
+  opacity: 0.3;
 }
 
 .status-label {
@@ -116,27 +117,17 @@ const statusLabelClass = computed(() => {
 }
 
 .label-up {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: var(--status-up-bg);
+  color: var(--status-up-fg);
 }
 .label-down {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: var(--status-down-bg);
+  color: var(--status-down-fg);
 }
 .label-pending {
-  background-color: oklch(var(--b2, 0.93 0 0));
-  color: oklch(var(--bc, 0.2 0 0) / 0.5);
-}
-
-@media (prefers-color-scheme: dark) {
-  .label-up {
-    background-color: #064e3b;
-    color: #a7f3d0;
-  }
-  .label-down {
-    background-color: #7f1d1d;
-    color: #fecaca;
-  }
+  background-color: var(--color-base-200);
+  color: var(--color-base-content, gray);
+  opacity: 0.7;
 }
 
 .method-badge {
@@ -145,8 +136,7 @@ const statusLabelClass = computed(() => {
   font-weight: 600;
   padding: 0.0625rem 0.375rem;
   border-radius: 0.25rem;
-  background: oklch(var(--bc, 0.2 0 0) / 0.08);
-  color: oklch(var(--bc, 0.2 0 0) / 0.6);
+  background: var(--bar-empty);
   font-family: ui-monospace, monospace;
 }
 
@@ -164,7 +154,6 @@ const statusLabelClass = computed(() => {
 
 .stat-item {
   padding: 0.75rem;
-  background: oklch(var(--bc, 0.2 0 0) / 0.03);
   border-radius: 0.5rem;
 }
 
@@ -172,7 +161,6 @@ const statusLabelClass = computed(() => {
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: oklch(var(--bc, 0.2 0 0) / 0.5);
   margin-bottom: 0.25rem;
 }
 

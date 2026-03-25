@@ -1,43 +1,43 @@
 <template>
-  <div class="monitor-row bg-base-100" @click="$emit('click')">
-    <div class="monitor-row-header">
+  <div class="grid-card bg-base-100" @click="$emit('click')">
+    <div class="flex items-center justify-between mb-2">
       <div class="flex items-center gap-2 min-w-0">
-        <span class="status-dot" :class="dotClass"></span>
-        <span class="font-semibold truncate">{{ monitor.name }}</span>
+        <span class="grid-dot" :class="dotClass"></span>
+        <span class="font-semibold text-sm truncate">{{ monitor.name }}</span>
       </div>
-      <div class="flex items-center gap-3 shrink-0">
-        <span v-if="monitor.lastCheck" class="text-xs text-base-content/50 hidden sm:inline">
-          {{ monitor.lastCheck.responseTime }}ms
-        </span>
-        <span
-          v-if="monitor.uptimePercent !== null"
-          class="uptime-pct font-mono text-sm font-semibold"
-          :class="uptimeColorClass"
-        >
-          {{ monitor.uptimePercent }}%
-        </span>
-        <span class="status-label" :class="statusLabelClass">
-          {{ statusText }}
-        </span>
-      </div>
+      <span class="status-label" :class="statusLabelClass">{{ statusText }}</span>
     </div>
-    <div class="history-bars">
+
+    <div class="text-xs text-base-content/50 truncate mb-3">
+      {{ monitor.url }}
+    </div>
+
+    <div class="history-bars-sm">
       <template v-if="bars.length > 0">
         <div
           v-for="(bar, i) in bars"
           :key="i"
-          class="history-bar tooltip"
+          class="bar-sm tooltip"
           :class="bar.isUp ? 'bar-up' : 'bar-down'"
           :data-tip="barTooltip(bar)"
         ></div>
       </template>
       <template v-else>
-        <div v-for="i in 45" :key="'empty-' + i" class="history-bar bar-empty"></div>
+        <div v-for="i in 30" :key="'empty-' + i" class="bar-sm bar-empty"></div>
       </template>
     </div>
-    <div class="bar-legend">
-      <span class="text-xs text-base-content/40">{{ barsAgo }}</span>
-      <span class="text-xs text-base-content/40">今</span>
+
+    <div class="flex items-center justify-between mt-2">
+      <span
+        v-if="monitor.uptimePercent !== null"
+        class="font-mono text-xs font-semibold"
+        :class="uptimeColorClass"
+      >
+        {{ monitor.uptimePercent }}%
+      </span>
+      <span v-if="monitor.lastCheck" class="text-xs text-base-content/40 font-mono">
+        {{ monitor.lastCheck.responseTime }}ms
+      </span>
     </div>
   </div>
 </template>
@@ -82,13 +82,7 @@ const statusLabelClass = computed(() => {
 
 const bars = computed(() => {
   const checks = props.monitor.recentChecks ?? [];
-  return checks.slice(-90);
-});
-
-const barsAgo = computed(() => {
-  const count = bars.value.length;
-  if (count === 0) return "データなし";
-  return `${count}回前`;
+  return checks.slice(-30);
 });
 
 function barTooltip(check: CheckResult) {
@@ -100,31 +94,23 @@ function barTooltip(check: CheckResult) {
 </script>
 
 <style scoped>
-.monitor-row {
+.grid-card {
   border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
-  padding: 1rem 1.25rem;
+  padding: 1rem;
   cursor: pointer;
   transition:
     box-shadow 0.15s,
     border-color 0.15s;
 }
 
-.monitor-row:hover {
+.grid-card:hover {
   box-shadow: 0 2px 8px var(--border-subtle);
 }
 
-.monitor-row-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.625rem;
-  gap: 1rem;
-}
-
-.status-dot {
-  width: 0.625rem;
-  height: 0.625rem;
+.grid-dot {
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 9999px;
   flex-shrink: 0;
 }
@@ -142,9 +128,9 @@ function barTooltip(check: CheckResult) {
 }
 
 .status-label {
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   font-weight: 600;
-  padding: 0.125rem 0.5rem;
+  padding: 0.0625rem 0.375rem;
   border-radius: 9999px;
   white-space: nowrap;
 }
@@ -163,21 +149,21 @@ function barTooltip(check: CheckResult) {
   opacity: 0.7;
 }
 
-.history-bars {
+.history-bars-sm {
   display: flex;
-  gap: 1.5px;
-  height: 2rem;
+  gap: 1px;
+  height: 1.25rem;
   align-items: stretch;
 }
 
-.history-bar {
+.bar-sm {
   flex: 1;
   min-width: 2px;
-  border-radius: 1.5px;
+  border-radius: 1px;
   transition: opacity 0.1s;
 }
 
-.history-bar:hover {
+.bar-sm:hover {
   opacity: 0.7;
 }
 
@@ -189,16 +175,5 @@ function barTooltip(check: CheckResult) {
 }
 .bar-empty {
   background-color: var(--bar-empty);
-}
-
-.bar-legend {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.25rem;
-}
-
-.uptime-pct {
-  min-width: 3.5rem;
-  text-align: right;
 }
 </style>

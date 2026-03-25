@@ -5,6 +5,38 @@
     dark;
 }
 
+/* ── Status color tokens ── */
+:root,
+[data-theme="light"] {
+  --status-up: #10b981;
+  --status-down: #ef4444;
+  --status-warn: #f59e0b;
+  --status-up-bg: #d1fae5;
+  --status-up-fg: #065f46;
+  --status-down-bg: #fee2e2;
+  --status-down-fg: #991b1b;
+  --status-warn-bg: #fef3c7;
+  --status-warn-fg: #92400e;
+  --bar-empty: rgba(0, 0, 0, 0.06);
+  --surface-hover: rgba(0, 0, 0, 0.03);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] {
+  --status-up: #34d399;
+  --status-down: #f87171;
+  --status-warn: #fbbf24;
+  --status-up-bg: #064e3b;
+  --status-up-fg: #a7f3d0;
+  --status-down-bg: #7f1d1d;
+  --status-down-fg: #fecaca;
+  --status-warn-bg: #78350f;
+  --status-warn-fg: #fde68a;
+  --bar-empty: rgba(255, 255, 255, 0.08);
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
 /* ── DaisyUI Theme Customization ── */
 @theme {
   /* Animation tokens */

@@ -27,6 +27,7 @@
         @check="checkNow"
         @delete="confirmDelete"
         @edit="showEditModal = true"
+        @duplicate="duplicateMonitor"
       />
 
       <MonitorChannelSelector
@@ -85,6 +86,25 @@ async function confirmDelete() {
   if (confirm(`「${monitor.value?.name}」を削除しますか？`)) {
     await client.monitor.delete({ id: monitorId });
     navigateTo("/");
+  }
+}
+
+async function duplicateMonitor() {
+  if (!monitor.value) return;
+  const m = monitor.value;
+  try {
+    const created = await client.monitor.create({
+      name: `${m.name} (コピー)`,
+      url: m.url,
+      method: m.method as "GET" | "POST",
+      headers: m.headers,
+      body: m.body,
+      timeout: m.timeout,
+      expectedStatus: m.expectedStatus,
+    });
+    navigateTo(`/monitors/${created.id}`);
+  } catch (e) {
+    alert(`複製に失敗しました: ${e instanceof Error ? e.message : "不明なエラー"}`);
   }
 }
 

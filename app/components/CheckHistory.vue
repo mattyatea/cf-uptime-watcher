@@ -1,8 +1,8 @@
 <template>
-  <div class="check-history-section">
+  <div class="check-history-section bg-base-100">
     <h3 class="font-bold text-lg mb-4 mt-0">チェック履歴</h3>
 
-    <!-- Uptime bars (UptimeRobot style) -->
+    <!-- Uptime bars -->
     <div class="history-bars-large">
       <div
         v-for="(check, i) in barData"
@@ -106,8 +106,7 @@ function shouldShowToggle(errorMessage: string | null) {
 
 <style scoped>
 .check-history-section {
-  background: oklch(var(--b1, 1 0 0));
-  border: 1px solid oklch(var(--bc, 0.2 0 0) / 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
   padding: 1.25rem;
 }
@@ -132,15 +131,13 @@ function shouldShowToggle(errorMessage: string | null) {
 }
 
 .bar-up {
-  background-color: #10b981;
+  background-color: var(--status-up);
 }
-
 .bar-down {
-  background-color: #ef4444;
+  background-color: var(--status-down);
 }
-
 .bar-empty {
-  background-color: oklch(var(--bc, 0.2 0 0) / 0.08);
+  background-color: var(--bar-empty);
 }
 
 .bar-legend {
@@ -155,12 +152,12 @@ function shouldShowToggle(errorMessage: string | null) {
   gap: 0.75rem;
   padding: 0.625rem 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid oklch(var(--bc, 0.2 0 0) / 0.06);
+  border: 1px solid var(--border-subtle);
   transition: background 0.1s;
 }
 
 .event-row:hover {
-  background: oklch(var(--bc, 0.2 0 0) / 0.03);
+  background: var(--surface-hover);
 }
 
 .event-dot {
@@ -171,9 +168,9 @@ function shouldShowToggle(errorMessage: string | null) {
 }
 
 .dot-up {
-  background-color: #10b981;
+  background-color: var(--status-up);
 }
 .dot-down {
-  background-color: #ef4444;
+  background-color: var(--status-down);
 }
 </style>
