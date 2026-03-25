@@ -1,4 +1,4 @@
-name = "cf-healthcheck"
+name = "cf-uptime-watcher"
 compatibility_date = "2026-03-12"
 main = ".output/server/index.mjs"
 preview_urls = false
