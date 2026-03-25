@@ -89,7 +89,8 @@
 
           <form @submit.prevent="saveMonitor">
             <div class="space-y-4">
-              <AppInput v-model="editForm.name" label="名前" required />
+              <AppInput v-model="editForm.name" label="名前（内部用）" required />
+              <AppInput v-model="editForm.displayName" label="表示名（権限がない時に見える名前）" />
               <AppInput v-model="editForm.url" label="URL" type="url" required />
 
               <div class="grid grid-cols-2 gap-4">
@@ -290,6 +291,7 @@ const showImportModal = ref(false);
 // Edit form
 const editForm = ref({
   name: "",
+  displayName: "",
   url: "",
   method: "GET",
   timeout: "30",
@@ -330,6 +332,7 @@ function selectMonitor(id: number) {
   if (m) {
     editForm.value = {
       name: m.name,
+      displayName: m.displayName || "",
       url: m.url,
       method: m.method,
       timeout: String(m.timeout),
@@ -361,6 +364,7 @@ async function saveMonitor() {
     await client.monitor.update({
       id: selectedMonitorId.value,
       name: editForm.value.name,
+      displayName: editForm.value.displayName || null,
       url: editForm.value.url,
       method: editForm.value.method as "GET" | "POST",
       timeout: Number(editForm.value.timeout),
@@ -385,6 +389,7 @@ async function duplicateMonitor(m: MonitorWithStatus) {
   try {
     const created = await client.monitor.create({
       name: `${m.name} (コピー)`,
+      displayName: m.displayName ? `${m.displayName} (コピー)` : null,
       url: m.url,
       method: m.method as "GET" | "POST",
       headers: m.headers,
