@@ -1,12 +1,9 @@
-name = "cf-healthcheck"
+name = "cf-uptime-watcher"
 compatibility_date = "2026-03-12"
 main = ".output/server/index.mjs"
 preview_urls = false
 workers_dev = false
 compatibility_flags = ["nodejs_compat"]
-
-[vars]
-AUTH_PASSWORD = "changeme"
 
 [[d1_databases]]
 binding = "DB"

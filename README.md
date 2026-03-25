@@ -1,8 +1,8 @@
-# cf-healthcheck
+# cf-uptime-watcher
 
 > Lightweight uptime monitoring that runs entirely on Cloudflare's free tier — no servers, no subscriptions.
 
-**cf-healthcheck** is a self-hosted uptime monitor built on Cloudflare Workers and D1. It checks your HTTP endpoints every 5 minutes, stores history in a serverless SQLite database, and fires Slack or Discord alerts the moment a service goes down (or recovers).
+**cf-uptime-watcher** is a self-hosted uptime monitor built on Cloudflare Workers and D1. It checks your HTTP endpoints every 5 minutes, stores history in a serverless SQLite database, and fires Slack or Discord alerts the moment a service goes down (or recovers).
 
 ## Features
 
@@ -42,8 +42,8 @@
 ### 1. Clone and install
 
 ```sh
-git clone https://github.com/mattyatea/cf-healthcheck.git
-cd cf-healthcheck
+git clone https://github.com/mattyatea/cf-uptime-watcher.git
+cd cf-uptime-watcher
 pnpm install
 ```
 
@@ -74,14 +74,20 @@ pnpm drizzle:migrate
 
 ### 4. Set your admin password
 
-Edit `wrangler.toml` and change the default password:
+Register `AUTH_PASSWORD` as a Cloudflare secret so it is never stored in plain text:
 
-```toml
-[vars]
-AUTH_PASSWORD = "your-secure-password"
+```sh
+pnpm wrangler secret put AUTH_PASSWORD
 ```
 
-> For production, use [Cloudflare secrets](https://developers.cloudflare.com/workers/configuration/secrets/) instead of vars.
+Wrangler will prompt you to enter the value interactively. The secret is encrypted and injected at runtime — it does not appear in `wrangler.toml` or source control.
+
+For local development, create a `.dev.vars` file in the project root (already gitignored):
+
+```sh
+# .dev.vars
+AUTH_PASSWORD=your-local-password
+```
 
 ### 5. Start the development server
 
@@ -181,11 +187,18 @@ curl -X POST https://your-worker.workers.dev/api/monitors/import \
 
 ### `wrangler.toml`
 
-| Key                          | Default       | Description                                |
-| ---------------------------- | ------------- | ------------------------------------------ |
-| `vars.AUTH_PASSWORD`         | `changeme`    | Admin password for authenticated endpoints |
-| `triggers.crons`             | `*/5 * * * *` | Cron schedule for health checks            |
-| `d1_databases[].database_id` | —             | Your Cloudflare D1 database ID             |
+| Key                          | Default       | Description                     |
+| ---------------------------- | ------------- | ------------------------------- |
+| `triggers.crons`             | `*/5 * * * *` | Cron schedule for health checks |
+| `d1_databases[].database_id` | —             | Your Cloudflare D1 database ID  |
+
+### Secrets
+
+Set via `pnpm wrangler secret put <KEY>`. Never commit these to source control.
+
+| Key             | Description                                |
+| --------------- | ------------------------------------------ |
+| `AUTH_PASSWORD` | Admin password for authenticated endpoints |
 
 ### Monitor options
 
